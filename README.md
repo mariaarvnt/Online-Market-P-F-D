@@ -45,6 +45,7 @@
  *  Αφού περιμένουμε λίγη ώρα προκειμένου το Docker να κατεβάσει τα images και να δημιουργήσει τα container, είμαστε έτοιμοι να περιηγηθούμε στην εφαρμογή εκτελώντας το app.py Αρχείο και τρέχοντας τα endpoints μέσω τερματικού με τρόπο που θα περιγραφεί παρακάτω.
 ## Υλοποίηση ζητούμενων endpoints
    0. Πριν την υλοποίηση των endpoints προηγήθηκε η σύνδεση με την mongodb, η δημιουργία των Collections Users, Products
+ * Για τον απλό χρήστη:
    1. **_createUser_** : Δημιουργία user ο οποίος θα εισάγεται στο collection Users και θα έχει μοναδικό email και password
         * Πραγματοποιείται post request- μέθοδος από τον χρήστη η οποία ονομάζεται create_user με την εντολή `def create_user()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο method με την χρήση της εντολής `curl http://localhost:5000/createUser -d '{"email":"thapo@gmail.com", "name":"Thanos Apostolou", "password":"kgljrgo5dg"}' -H "Content-Type: application/json" -X POST  `. Τα thapo@gmail.com, Thanos Apostolou, kgljrgo5dg είναι παραδείγματα email, name και password αντίστοιχα. 
