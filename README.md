@@ -36,6 +36,5 @@
         * `restart: always`
         * `container-name`
         * `depends_on: mongodb`: Ξεκινάμε από το mongodb και για να προχωρήσουμε στο flask-service το σύστημα σιγουρεύεται ότι το mongodb είναι up
-        * `environment: 
-      - "MONGO_HOSTNAME=mongodb"` : Εντολή που ορίζει το όνομα του host με χρήση environment variable έτσι ώστε να το γνωρίζει το flask
+        * `environment: - "MONGO_HOSTNAME=mongodb"` : Εντολή που ορίζει το όνομα του host με χρήση environment variable έτσι ώστε να το γνωρίζει το flask
    * Για την δημιουργία του docker-compose εκτελούμε την εντολή `sudo sudo docker-compose up -d` στο directory που βρίσκεται το αρχείο .yml
