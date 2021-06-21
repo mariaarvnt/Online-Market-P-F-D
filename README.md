@@ -99,7 +99,7 @@
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`
    4. **_searchByCategory_** : Αναζήτηση προϊόντος βάσεικατηγορίας      
-        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_name με την εντολή `def search_by_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_category με την εντολή `def search_by_category()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByCategory -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`. Τα ee6636ec-d26d-11eb-84a9-e90961b205b2, da@gmail.com, kgljrjgo5dg, Diary είναι παραδείγματα uuid, email, password, p_category αντίστοιχα.   
         * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
            * Επιτυχή αυθεντικοποίηση του χρήστη 
@@ -140,3 +140,26 @@
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
+   5. **_searchById_** : Αναζήτηση προϊόντος βάσει μοναδικού κωδικού προϊόντος (_ id της mongodb)    
+        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_id με την εντολή `def search_by_id` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchById -d '{"email":"da@gmail.com", "password":"kgljrjgo5dg","_id":"60c71e6d9d6daceffd4550f3"}' -H "Content-Type: application/json" -X GET
+`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, da@gmail.com, kgljrjgo5dg, 60c71e6d9d6daceffd4550f3  είναι παραδείγματα uuid, email, password, _ id αντίστοιχα.   
+        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
+           * Επιτυχή αυθεντικοποίηση του χρήστη 
+            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
+                * Μετατροπή του δοθέντος _ id από String σε ObjectId έτσι ώστε να μπορεί να γίνει η αναζήτηση εντός των εγγραφών της βάσης αρχικά με την εκχώρηση του _ id στην μεταβήτή oid_str `oid_str = data['_id']` και στην συνέχεια με την μετατροπή `oid2 = ObjectId(oid_str)`
+                * Εύρεση προϊόντος με _ id αυτό που εισήγαγε στην αναζήτησή του ο χρήστης και μετατρέψαμε παραπάνω `found_product = products.find_one({"_id" : oid2})`. 
+                  * Αν δεν βρεθούν κανένα προϊόν με αυτό το _ id, δηλαδή `if found_product == None:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No product found with given id", status=500, mimetype="application/json")`
+                  * Για το προϊόν που θα βρεθεί `else:`, θα δημιουργηθεί ένα dict `product` με την εντολή `product ={"product name": found_product['p_name'], "product category": found_product['p_category'], "stock": found_product['stock'], "description": found_product['descr'], "price": found_product['price']}` που θα περιέχει τα στοιχεία του προϊόντος
+                  * Επιστρέφεται το λεξικό ` return Response(json.dumps(product, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `{
+  "product name": "Strained Yogurt 2% Fat",
+  "product category": "Diary",
+  "stock": 100,
+  "description": "Strained yogurt with flower milk.2% fat",
+  "price": 1.49
+}`, δηλαδή το ζητούμενο προϊόν
+              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
+            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
+        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
+    
