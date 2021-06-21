@@ -240,7 +240,7 @@
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`   
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`   
-   9. **_showCart_** : Προσθήκη προϊόντος στο καλάθι     
+   9. **_showorderHistory_** : Προσθήκη προϊόντος στο καλάθι     
         * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται showOrderHistory με την εντολή `def showOrderHistory()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/showCart -d '{"email":"pet@gmail.com", "password":"kgljrjgo5dg"}' -H "Content-Type: application/json" -X GET  `. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, pet@gmail.com, kgljrjgo5dg,  είναι παραδείγματα uuid, email, password αντίστοιχα.   
         * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
@@ -254,3 +254,18 @@
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`             
+   10. **_deleteAcc_** : Διαγραφή λογαριασμού χρήστη     
+        * Πραγματοποιείται delete request- μέθοδος από τον χρήστη η οποία ονομάζεται delete_account με την εντολή `def delete_account()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/deleteAcc -d '{"email":"stm@gmail.com", "password":"abds"}' -H "Content-Type: application/json" -X DELETE`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, stm@gmail.com, abds είναι παραδείγματα uuid, email, password αντίστοιχα.   
+        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
+           * Επιτυχή αυθεντικοποίηση του χρήστη 
+           * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":` ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
+                * Ελέγχουμε αν τα δοθέντα στοιχεία ταυτίζονται με τα του ζητούμενου χρήστη με την εντολή `if user_session['email'] == data['email'] and user_session['password'] == data['password']:`. Αν ναι:
+                  * Διαγραφή του χρήστη με την εντολή `users.delete_one({"email": data["email"]})`            
+                  * Επιστροφή μηνύματος επιτυχίας αγοράς `return Response("Purchase successful", status=500, mimetype='application/json')` 
+                 * Αν όχι, επιστρέφεται μήνυμα αποτυχίας `return Response("No user found with given email",status=500,mimetype='application/json')`
+              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
+            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
+        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`   
+        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`   
