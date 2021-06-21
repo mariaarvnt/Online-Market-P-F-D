@@ -192,4 +192,25 @@
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`                       
-    
+   7. **_removeItem_** : Αφαίρεση προϊόντος από το καλάθι     
+        * Πραγματοποιείται patch request- μέθοδος από τον χρήστη η οποία ονομάζεται remove_item με την εντολή `def remove_item()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/removeItem -d '{"email":"pet@gmail.com", "password":"kgljrjgo5dg", "_id":"60c5f9d9a1b20a45b2eddb5a"}' -H "Content-Type: application/json" -X PATCH`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, pet@gmail.com, kgljrjgo5dg, 60c5f9d9a1b20a45b2eddb5a είναι παραδείγματα uuid, email, password, _ id αντίστοιχα.   
+        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
+           * Επιτυχή αυθεντικοποίηση του χρήστη 
+            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":` ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
+                * Μετατροπή του δοθέντος _ id από String σε ObjectId έτσι ώστε να μπορεί να γίνει η αναζήτηση εντός των εγγραφών της βάσης αρχικά με την εκχώρηση του _ id στην μεταβήτή oid_str `oid_str = data['_id']` και στην συνέχεια με την μετατροπή `oid2 = ObjectId(oid_str)`
+                * Εύρεση προϊόντος με _ id αυτό που εισήγαγε στην αναζήτησή του ο χρήστης και μετατρέψαμε παραπάνω `found_product = products.find_one({"_id" : oid2})`. 
+                  * Αν δεν βρεθούν κανένα προϊόν με αυτό το _ id, δηλαδή `if found_product == None:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No product found with given id", status=500, mimetype="application/json")`
+                  * Αν βρεθεί προϊόν, θα ελεγχθεί εάν το καλάθι του χρήστη υπάρχει `hasCart = users.find_one({"email": data["email"], "cart": {"$exists": "true", "$ne": ""}})`, ` if hasCart:` και αν υπάρχει:              
+                    * Αφαιρούμε το συγκεκριμένο προϊόν `user_session = users.update_one({"email": data["email"]},
+                                                {"$pull":
+                                                {
+                                                    "cart": {"$elemMatch":{"_id": oid2}}
+                                                }
+                                                })`με χρήση του τελεστή `$pull`, ο οποίος αφαιρεί από έναν υπάρχοντα πίνακα όλες τις εμφανίσεις μιας τιμής ή τιμών που ταιριάζουν με μια καθορισμένη συνθήκη και του `$elemMatch` λόγω της δομής των προϊόντων στο καλάθι.
+                    * Επιστροφή επιτυχούς διαγραφής `return Response("Item with _id "+data['_id']+" was successfully removed from cart", status=200, mimetype='application/json')` 
+                  * Αν όχι, επιστρέφεται μήνυμα αποτυχίας `return Response("Cart is empty", status=500, mimetype='application/json')`
+              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
+            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
+        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
