@@ -4,7 +4,7 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-v%5E4.4-red.svg?longCache=true&style=flat-square&logo=scala&logoColor=white&colorA=4c566a&colorB=bf616a)
 ## Εισαγωγή
 Το συγκεκριμένο project αφορά το εργαστήριο του μαθήματος «(ΨΣ-152) Πληροφοριακά Συστήματα» του τμήματος Ψηφιακών Συστημάτων του Πανεπιστημίου Πειραιώς και πραγματοποιήθηκε ως μέρος της εξαμηνιαίας εργασίας. Κάνοντας χρήση Python και Flask υλοποιήθηκε web service το οποίο παρέχει τα απαραίτητα endpoint στους χρήστες του, ώστε να μπορούν να εκτελεστούν ορισμένες λειτουργίες. Το web service συνδέεται με ένα container της MongoDB. Τέλος, το web service έγινε  containerized με χρήση Dockerfile και docker-compose ώστε το web service και η MongoDB να τρέχουν μαζί.
-## Δομή της εργασίας
+## Σύστημα
 1. Δημιουργία MONGODB container
    * Το container έχει όνομα mongodb και ανταποκρίνεται στην port 27017 του host. 
       * Η δημιουργία του MONGODB container με όνομα mongodb πραγματοποιήθηκε με την εντολή:  `sudo docker run -d -p 27017:27017 --name mongodb mongo`
@@ -37,4 +37,9 @@
         * `container-name`
         * `depends_on: mongodb`: Ξεκινάμε από το mongodb και για να προχωρήσουμε στο flask-service το σύστημα σιγουρεύεται ότι το mongodb είναι up
         * `environment: - "MONGO_HOSTNAME=mongodb"` : Εντολή που ορίζει το όνομα του host με χρήση environment variable έτσι ώστε να το γνωρίζει το flask
-   * Για την δημιουργία του docker-compose εκτελούμε την εντολή `sudo sudo docker-compose up -d` στο directory που βρίσκεται το αρχείο .yml
+   * Για την δημιουργία του docker-compose εκτελούμε την εντολή (αφού έχουμε εγκαταστήσει το docker-compose)`sudo sudo docker-compose up -d` στο directory που βρίσκεται το αρχείο .yml
+ 4. Δημιουργία mongodb
+   * Η δημιουργία του MONGODB container με όνομα mongodb πραγματοποιήθηκε με την εντολή:  `sudo docker run -d -p 27017:27017 --name mongodb mongo`
+## How to run
+ *  Εφόσον υπάρχει ο κώδικας στον υπολογιστή μας, δηλαδή ο φάκελος flask, ο φάκελος mongodb και το docker-compose file  εκτελούμε την εντολή (αφού έχουμε εγκαταστήσει το docker-compose)`sudo sudo docker-compose up -d` στο directory που βρίσκεται το αρχείο .yml
+ *  Αφού περιμένουμε λίγη ώρα προκειμένου το Docker να κατεβάσει τα images και να δημιουργήσει τα container, είμαστε έτοιμοι να περιηγηθούμε στην εφαρμογή εκτελώντας το app.py Αρχείο και τρέχοντας τα endpoints μέσω τερματικού με τρόπο που θα περιγραφεί παρακάτω.
