@@ -45,6 +45,7 @@
  *  Αφού περιμένουμε λίγη ώρα προκειμένου το Docker να κατεβάσει τα images και να δημιουργήσει τα container, είμαστε έτοιμοι να περιηγηθούμε στην εφαρμογή εκτελώντας το app.py Αρχείο και τρέχοντας τα endpoints μέσω τερματικού με τρόπο που θα περιγραφεί παρακάτω.
 ## Υλοποίηση ζητούμενων endpoints
    0. Πριν την υλοποίηση των endpoints προηγήθηκε η σύνδεση με την mongodb, η δημιουργία των Collections Users, Products
+ USERS: To collection αυτό περιέχει εγγραφές χρηστών του συστήματος. Κάθε χρήστης έχει name: Ονοματεπώνυμο, e-mail: e-mail, password: Το password, category: Κατηγορία χρήστη (με τιμή user ή admin), orderHistory: Το ιστορικό των παραγγελιών του χρήστη (μόνο για τη περίπτωση user και όχι admin), cart: το καλάθι του χρήστη (μόνο για τη περίπτωση user και όχι admin)
  * Για τον απλό χρήστη:
    1. **_createUser_** : Δημιουργία user ο οποίος θα εισάγεται στο collection Users και θα έχει μοναδικό email και password
         * Πραγματοποιείται post request- μέθοδος από τον χρήστη η οποία ονομάζεται create_user με την εντολή `def create_user()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
@@ -63,4 +64,7 @@
             * Τέλος, επιστρέφονται τα user_uuid, password και μήνυμα επιτυχίας με την εντολή  `return Response(json.dumps(res), status=200, mimetype='application/json'))` (Έχει εισαχθεί status code 200)
             * Αποτέλεσμα: `{"uuid": ["3f00052e-d269-11eb-9574-15e0c598420c", "57d9d773-f73c-493e-91b7-23ab332601e4"], "email": "thapo@gmail.com"} `
          * Σε περίπτωση που δεν υπάρχει στην βάση το username που έδωσε ο χρήστης ή ο κωδικός του είναι λανθασμένος και η αυθεντικοποίηση δεν είναι επιτυχής:
-            * Επιστρέφεται μήνυμα λάθους με την εντολή `return Response('No user found with given email or password', status=400, mimetype='application/json')`, δηλαδή αποτέλεσμα: `No user found with given email or password`            
+            * Επιστρέφεται μήνυμα λάθους με την εντολή `return Response('No user found with given email or password', status=400, mimetype='application/json')`, δηλαδή αποτέλεσμα: `No user found with given email or password`   
+   3. **_searchByName_** : Αναζήτηση προϊόντος βάσει ονόματος
+        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_name με την εντολή `def search_by_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email":"thapo@gmail.com", "password":"kgljrgo5dg", "p_name":"500"}' -H "Content-Type: application/json" -X GET`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, thapo@gmail.com, kgljrgo5dg, 500 είναι παραδείγματα uuid, email, password, p_name αντίστοιχα.          
