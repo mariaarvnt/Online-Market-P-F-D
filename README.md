@@ -98,4 +98,45 @@
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`
-   4. **_searchByCategory_** : Αναζήτηση προϊόντος βάσει ονόματος        
+   4. **_searchByCategory_** : Αναζήτηση προϊόντος βάσεικατηγορίας      
+        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_name με την εντολή `def search_by_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByCategory -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`. Τα ee6636ec-d26d-11eb-84a9-e90961b205b2, da@gmail.com, kgljrjgo5dg, Diary είναι παραδείγματα uuid, email, password, p_category αντίστοιχα.   
+        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
+           * Επιτυχή αυθεντικοποίηση του χρήστη 
+            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
+                * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
+                * Εύρεση προϊόντων που έχουν ίδια κατηγορία (p_category) με αυτή που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_c_products` με την εντολή `same_c_products = list(products.find({"p_category" : data['p_category']}))`
+                  * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_c_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found in requested category, status=500, mimetype="application/json")`
+                  * Για τα προϊόντα που θα βρεθουν `for product in same_c_products:`, θα εισαχθούν στην λίστα `products_list` με την εντολή `products_list.append(product)` αφού πρώτα μετατραπεί σε string το _ id - μοναδικό αναγνωριστικό που προσθέτει η βάση σε κάθε αντικείμενο και είναι τύπου ObjectId. Η μετατροπή θα γίνει με την εντολή   `product['_id'] = str(product['_id'])`
+                  * Τέλος, η λίστα θα ταξινομηθεί βάσει της τιμής των προϊόντων σε αύξουσα σειρά με την μέθοδο `sorted()` και την `lambda function` ως εξής `products_sorted_list=sorted(products_list,  key=lambda products: product['price'])`
+                  * Επιστρέφεται η λίστα `return Response(json.dumps(products_sorted_list, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `[
+  {
+    "_id": "60c5f9d9a1b20a45b2eddb5a",
+    "p_name": "Milk 1LT",
+    "p_category": "Diary",
+    "stock": 125,
+    "descr": "Fresh Milk 3.5% fat",
+    "price": 1.28
+  },
+  {
+    "_id": "60c71e6d9d6daceffd4550f3",
+    "p_name": "Strained Yogurt 2% Fat",
+    "p_category": "Diary",
+    "stock": 100,
+    "descr": "Strained yogurt with flower milk.2% fat",
+    "price": 1.49
+  },
+  {
+    "_id": "60c73167a9026fc7475ca234",
+    "p_name": "Strained Yogurt 2% Fat",
+    "p_category": "Diary",
+    "stock": 120,
+    "descr": "Strained yogurt with flower milk.2% fat. Package of 3.",
+    "price": 2.98
+  }
+]                                                   
+`, δηλαδή τα τρία προϊόντα που ανήκουν στην κατηγορία 'Diary'. 
+              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
+            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
+        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
