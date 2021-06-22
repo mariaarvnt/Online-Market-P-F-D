@@ -264,7 +264,7 @@
     1. **_addAdmin_** : Δημιουργία admin ο οποίος θα εισάγεται στο collection Users και θα έχει μοναδικό email και password
         * Πραγματοποιείται post request- μέθοδος από τον χρήστη η οποία ονομάζεται add_admin με την εντολή `def add_admin()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο method με την χρήση της εντολής `curl http://localhost:5000/addAdmin -d '{"email":"adminsarah@gmail.com", "name":"Admin Sarah", "password":"opp8"}' -H "Content-Type: application/json" -X POST`. Τα adminsarah@gmail.com, Admin Sarah, opp8 είναι παραδείγματα email, name και password αντίστοιχα.
-        * Με την επιτυχή φόρτωση των δεδομένων, ελέγχουμε αν υπάρχει ήδη κάποιος διαχειριστής με το ίδιο username που δώσαμε με την εντολή ` users.count_documents({"email":data["email"]}) ` η οποία κάνοντας χρήση της count_documents() μετρά τις εγγραφές που έχουν αυτό το email. Έτσι:
+        * Με την επιτυχή φόρτωση των δεδομένων, ελέγχουμε αν υπάρχει ήδη κάποιος διαχειριστής με το ίδιο email που δώσαμε με την εντολή ` users.count_documents({"email":data["email"]}) ` η οποία κάνοντας χρήση της count_documents() μετρά τις εγγραφές που έχουν αυτό το email. Έτσι:
             * `if users.count_documents({"email":data["email"]})== 0 :`, δηλαδή αν δεν υπάρχει ήδη κάποιος χρήστης με αυτό το email γίνεται εισαγωγή του διαχειριστή με τα στοιχεία του στο collection users με τις εντολές ` user = { 
         "email": data['email'],
         "name": data['name'],
@@ -292,7 +292,7 @@
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No admin found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
    3. **_updateProduct_** : Ενημέρωση προϊόντος 
-        * Πραγματοποιείται patch request- μέθοδος από τον χρήστη η οποία ονομάζεται update_product_name με την εντολή `def update_product_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Πραγματοποιείται patch request- μέθοδος από τον χρήστη η οποία ονομάζεται update_product με την εντολή `def update_product()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/updateProductName -d '{"email":"adminsarah@gmail.com", "password":"opp8", "_id":"60c73167a9026fc7475ca234", "descr":"Strained yogurt with flower milk.2% fat. Package of 3.", "price":"2.99"}' -H "Content-Type: application/json" -X PATCH` εάν ο χρήστης επιθυμεί να ενημερώσει τα πεδία περιγραφή, τιμή προϊόντος και γενικά με αυτόν τον τρόπο επιλέγει ποια πεδία θέλει να ενημερώσει. 
         * Με την επιτυχή φόρτωση των δεδομένων, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
            * Επιτυχή αυθεντικοποίηση του χρήστη 
@@ -326,3 +326,5 @@
                   * Επιστροφή μηνύματος επιτυχίας `return Response("Product was successfully deleted from MongoDB", status=500, mimetype='application/json')` 
               * Σε περίπτωση που το email δεν ανήκει σε admin αλλά σε user επιστρέφεται το μήνυμα `Only admins can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο admin επιστρέφεται το μήνυμα `No admin found with given email`
+##Στοιχεία επικοινωνίας
+Αρβανίτη Μαρία mariaarvaniti00@gmail.com
