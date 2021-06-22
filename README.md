@@ -8,9 +8,9 @@
 1. Δημιουργία MONGODB container
    * Το container έχει όνομα mongodb και ανταποκρίνεται στην port 27017 του host. 
       * Η δημιουργία του MONGODB container με όνομα mongodb πραγματοποιήθηκε με την εντολή:  `sudo docker run -d -p 27017:27017 --name mongodb mongo`
-      * Με τη χρήση της εντολής: `sudo docker exec -it mongodb mongo` 
+      * Με τη χρήση της εντολής: `sudo docker exec -it mongodb mongo` εισαγόμαστε στο mongoshell
 2. Δημιουργία Dockerfile
-   * Υπάρχουν οι εντολές:
+   * Εντός του Dockerfile υπάρχουν οι εντολές:
       * Επιλογή του base image για την νέα εικόνα που θα δημιουργήσουμε: `FROM ubuntu:latest`
       * Εκτέλεση της εντολής apt-get update μέσα στο image για να σιγουρευτούμε ότι το σύστημά μας είναι up-to-date: `RUN apt-get update` 
       * Εκτέλεση της εντολής μέσα στο image για την εγκατάσταση της python3 και του pip: `RUN apt-get install -y python3 python3-pip`
