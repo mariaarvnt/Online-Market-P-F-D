@@ -65,103 +65,85 @@
             * Αποτέλεσμα: `{"uuid": ["ee6636ec-d26d-11eb-84a9-e90961b205b2", "839c40bf-6c63-4150-bc03-533e6d82dd17"], "email": "da@gmail.com"}`
          * Σε περίπτωση που δεν υπάρχει στην βάση το username που έδωσε ο χρήστης ή ο κωδικός του είναι λανθασμένος και η αυθεντικοποίηση δεν είναι επιτυχής:
             * Επιστρέφεται μήνυμα λάθους με την εντολή `return Response('No user found with given email or password', status=400, mimetype='application/json')`, δηλαδή αποτέλεσμα: `No user found with given email or password`   
-   3. **_searchByName_** : Αναζήτηση προϊόντος βάσει ονόματος
-        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_name με την εντολή `def search_by_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
-        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_name":"500"}' -H "Content-Type: application/json" -X GET`. Τα ee6636ec-d26d-11eb-84a9-e90961b205b2, da@gmail.com, kgljrjgo5dg, 500 είναι παραδείγματα uuid, email, password, p_name αντίστοιχα.   
+   3. **_searchProduct_** : Αναζήτηση προϊόντος 
+        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_product με την εντολή `def search_product()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_name":"500"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει ονόματος, `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`,  εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει κατηγορίας, curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchById -d '{"email":"da@gmail.com", "password":"kgljrjgo5dg","_id":"60c71e6d9d6daceffd4550f3"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει μοναδικού κωδικού προϊόντος
         * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
             * Επιτυχή αυθεντικοποίηση του χρήστη 
             * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
               * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
-                * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
-                * Εύρεση προϊόντων που έχουν στο όνομά τους (p_name) το όνομα που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_products` με την εντολή `same_products = list(products.find({"p_name" : {"$regex" : data['p_name']}}))`. Εδώ χρησιμοποιήθηκε ο τελεστής `$regex` που βοηθά στην εύρεση όσων εγγραφών περιέχουν το pattern που δόθηκε μέσω του data['p_name']. 
-                  * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found with the name " + data['p_name'], status=500, mimetype="application/json")`
-                  * Για τα προϊόντα που θα βρεθουν `for product in same_products:`, θα εισαχθούν στην λίστα `products_list` με την εντολή `products_list.append(product)` αφού πρώτα μετατραπεί σε string το _ id - μοναδικό αναγνωριστικό που προσθέτει η βάση σε κάθε αντικείμενο και είναι τύπου ObjectId. Η μετατροπή θα γίνει με την εντολή   `product['_id'] = str(product['_id'])`
-                  * Τέλος, η λίστα θα ταξινομηθεί βάσει των ονομάτων των προϊόντων σε αλφαβητική σειρά με την μέθοδο `sorted()` και την `lambda function` ως εξής `products_sorted_list = sorted(products_list,  key=lambda products: data['p_name'])`
-                  * Επιστρέφεται η λίστα `return Response(json.dumps(products_sorted_list, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `[
-  {
-    "_id": "60c71f549d6daceffd4550f5",
-    "p_name": "Antibacterial Lavender Cream Soap Spare 500ml",
-    "p_category": "Personal Care Items",
-    "stock": 100,
-    "descr": "Dettol Liquid Cream Soap provides your skin with a gentle antibacterial protection against microorganisms. Its unique composition for sensitive skin leaves your hands with a feeling of softness and hydration. It is important to wash your hands thoroughly daily. Use Dettol Moisturizing Cream Soap and let your hands feel hydrated and clean. With a pleasant lavender scent.",
-    "price": 2.55
-  },
-  {
-    "_id": "60c720c89d6daceffd4550f7",
-    "p_name": "Spaghetti No7 500g",
-    "p_category": "Basic standard foods",
-    "stock": 400,
-    "descr": "Spaghetti No7 Melissa is a classic pasta of fine Greek grains with golden color and authentic taste. A thin pasta that is extremely versatile as a base for everyday cooking, but can also be used in more gourmet recipes. It is cooked plain, with cheese, with red or white sauces. It goes perfectly with Greek classic recipes such as spaghetti with minced meat, but also with modern recipes.",
-    "price": 0.97
-  }
-] `, δηλαδή τα δύο προϊόντα που έχουν στο όνομά τους το '500'. 
+                  * Εάν ο χρήστης έχει δόσει όνομα προϊόντος: 
+                    * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
+                    * Εύρεση προϊόντων που έχουν στο όνομά τους (p_name) το όνομα που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_products` με την εντολή `same_products = list(products.find({"p_name" : {"$regex" : data['p_name']}}))`. Εδώ χρησιμοποιήθηκε ο τελεστής `$regex` που βοηθά στην εύρεση όσων εγγραφών περιέχουν το pattern που δόθηκε μέσω του data['p_name']. 
+                      * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found with the name " + data['p_name'], status=500, mimetype="application/json")`
+                      * Για τα προϊόντα που θα βρεθουν `for product in same_products:`, θα εισαχθούν στην λίστα `products_list` με την εντολή `products_list.append(product)` αφού πρώτα μετατραπεί σε string το _ id - μοναδικό αναγνωριστικό που προσθέτει η βάση σε κάθε αντικείμενο και είναι τύπου ObjectId. Η μετατροπή θα γίνει με την εντολή   `product['_id'] = str(product['_id'])`
+                      * Τέλος, η λίστα θα ταξινομηθεί βάσει των ονομάτων των προϊόντων σε αλφαβητική σειρά με την μέθοδο `sorted()` και την `lambda function` ως εξής `products_sorted_list = sorted(products_list,  key=lambda products: data['p_name'])`
+                      * Επιστρέφεται η λίστα `return Response(json.dumps(products_sorted_list, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `[
+      {
+        "_id": "60c71f549d6daceffd4550f5",
+        "p_name": "Antibacterial Lavender Cream Soap Spare 500ml",
+        "p_category": "Personal Care Items",
+        "stock": 100,
+        "descr": "Dettol Liquid Cream Soap provides your skin with a gentle antibacterial protection against microorganisms. Its unique composition for sensitive skin leaves your hands with a feeling of softness and hydration. It is important to wash your hands thoroughly daily. Use Dettol Moisturizing Cream Soap and let your hands feel hydrated and clean. With a pleasant lavender scent.",
+        "price": 2.55
+      },
+      {
+        "_id": "60c720c89d6daceffd4550f7",
+        "p_name": "Spaghetti No7 500g",
+        "p_category": "Basic standard foods",
+        "stock": 400,
+        "descr": "Spaghetti No7 Melissa is a classic pasta of fine Greek grains with golden color and authentic taste. A thin pasta that is extremely versatile as a base for everyday cooking, but can also be used in more gourmet recipes. It is cooked plain, with cheese, with red or white sauces. It goes perfectly with Greek classic recipes such as spaghetti with minced meat, but also with modern recipes.",
+        "price": 0.97
+      }
+    ] `, δηλαδή τα δύο προϊόντα που έχουν στο όνομά τους το '500'. 
+                  * Εάν ο χρήστης έχει δώσει κατηγορία προϊόντος:   
+                    * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
+                    * Εύρεση προϊόντων που έχουν ίδια κατηγορία (p_category) με αυτή που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_c_products` με την εντολή `same_c_products = list(products.find({"p_category" : data['p_category']}))`
+                      * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_c_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found in requested category, status=500, mimetype="application/json")`
+                      * Για τα προϊόντα που θα βρεθουν `for product in same_c_products:`, θα εισαχθούν στην λίστα `products_list` με την εντολή `products_list.append(product)` αφού πρώτα μετατραπεί σε string το _ id - μοναδικό αναγνωριστικό που προσθέτει η βάση σε κάθε αντικείμενο και είναι τύπου ObjectId. Η μετατροπή θα γίνει με την εντολή   `product['_id'] = str(product['_id'])`
+                      * Τέλος, η λίστα θα ταξινομηθεί βάσει της τιμής των προϊόντων σε αύξουσα σειρά με την μέθοδο `sorted()` και την `lambda function` ως εξής `products_sorted_list=sorted(products_list,  key=lambda products: product['price'])`
+                      * Επιστρέφεται η λίστα `return Response(json.dumps(products_sorted_list, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `[
+      {
+        "_id": "60c5f9d9a1b20a45b2eddb5a",
+        "p_name": "Milk 1LT",
+        "p_category": "Diary",
+        "stock": 125,
+        "descr": "Fresh Milk 3.5% fat",
+        "price": 1.28
+      },
+      {
+        "_id": "60c71e6d9d6daceffd4550f3",
+        "p_name": "Strained Yogurt 2% Fat",
+        "p_category": "Diary",
+        "stock": 100,
+        "descr": "Strained yogurt with flower milk.2% fat",
+        "price": 1.49
+      },
+      {
+        "_id": "60c73167a9026fc7475ca234",
+        "p_name": "Strained Yogurt 2% Fat",
+        "p_category": "Diary",
+        "stock": 120,
+        "descr": "Strained yogurt with flower milk.2% fat. Package of 3.",
+        "price": 2.98
+      }
+    ]                                                   
+    `, δηλαδή τα τρία προϊόντα που ανήκουν στην κατηγορία 'Diary'.    
+                  * Εάν ο χρήστης έχει δώσει μοναδικό κωδικό προϊόντος:      
+                      * Μετατροπή του δοθέντος _ id από String σε ObjectId έτσι ώστε να μπορεί να γίνει η αναζήτηση εντός των εγγραφών της βάσης αρχικά με την εκχώρηση του _ id στην μεταβήτή oid_str `oid_str = data['_id']` και στην συνέχεια με την μετατροπή `oid2 = ObjectId(oid_str)`
+                      * Εύρεση προϊόντος με _ id αυτό που εισήγαγε στην αναζήτησή του ο χρήστης και μετατρέψαμε παραπάνω `found_product = products.find_one({"_id" : oid2})`. 
+                        * Αν δεν βρεθούν κανένα προϊόν με αυτό το _ id, δηλαδή `if found_product == None:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No product found with given id", status=500, mimetype="application/json")`
+                        * Για το προϊόν που θα βρεθεί `else:`, θα δημιουργηθεί ένα dict `product` με την εντολή `product ={"product name": found_product['p_name'], "product category": found_product['p_category'], "stock": found_product['stock'], "description": found_product['descr'], "price": found_product['price']}` που θα περιέχει τα στοιχεία του προϊόντος
+                        * Επιστρέφεται το λεξικό ` return Response(json.dumps(product, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `{
+        "product name": "Strained Yogurt 2% Fat",
+        "product category": "Diary",
+        "stock": 100,
+        "description": "Strained yogurt with flower milk.2% fat",
+        "price": 1.49
+      }`, δηλαδή το ζητούμενο προϊόν                  
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`
-   4. **_searchByCategory_** : Αναζήτηση προϊόντος βάσεικατηγορίας      
-        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_category με την εντολή `def search_by_category()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
-        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByCategory -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`. Τα ee6636ec-d26d-11eb-84a9-e90961b205b2, da@gmail.com, kgljrjgo5dg, Diary είναι παραδείγματα uuid, email, password, p_category αντίστοιχα.   
-        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
-           * Επιτυχή αυθεντικοποίηση του χρήστη 
-            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
-              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
-                * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
-                * Εύρεση προϊόντων που έχουν ίδια κατηγορία (p_category) με αυτή που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_c_products` με την εντολή `same_c_products = list(products.find({"p_category" : data['p_category']}))`
-                  * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_c_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found in requested category, status=500, mimetype="application/json")`
-                  * Για τα προϊόντα που θα βρεθουν `for product in same_c_products:`, θα εισαχθούν στην λίστα `products_list` με την εντολή `products_list.append(product)` αφού πρώτα μετατραπεί σε string το _ id - μοναδικό αναγνωριστικό που προσθέτει η βάση σε κάθε αντικείμενο και είναι τύπου ObjectId. Η μετατροπή θα γίνει με την εντολή   `product['_id'] = str(product['_id'])`
-                  * Τέλος, η λίστα θα ταξινομηθεί βάσει της τιμής των προϊόντων σε αύξουσα σειρά με την μέθοδο `sorted()` και την `lambda function` ως εξής `products_sorted_list=sorted(products_list,  key=lambda products: product['price'])`
-                  * Επιστρέφεται η λίστα `return Response(json.dumps(products_sorted_list, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `[
-  {
-    "_id": "60c5f9d9a1b20a45b2eddb5a",
-    "p_name": "Milk 1LT",
-    "p_category": "Diary",
-    "stock": 125,
-    "descr": "Fresh Milk 3.5% fat",
-    "price": 1.28
-  },
-  {
-    "_id": "60c71e6d9d6daceffd4550f3",
-    "p_name": "Strained Yogurt 2% Fat",
-    "p_category": "Diary",
-    "stock": 100,
-    "descr": "Strained yogurt with flower milk.2% fat",
-    "price": 1.49
-  },
-  {
-    "_id": "60c73167a9026fc7475ca234",
-    "p_name": "Strained Yogurt 2% Fat",
-    "p_category": "Diary",
-    "stock": 120,
-    "descr": "Strained yogurt with flower milk.2% fat. Package of 3.",
-    "price": 2.98
-  }
-]                                                   
-`, δηλαδή τα τρία προϊόντα που ανήκουν στην κατηγορία 'Diary'. 
-              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
-            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
-        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
-   5. **_searchById_** : Αναζήτηση προϊόντος βάσει μοναδικού κωδικού προϊόντος (_ id της mongodb)    
-        * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_by_id με την εντολή `def search_by_id` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
-        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchById -d '{"email":"da@gmail.com", "password":"kgljrjgo5dg","_id":"60c71e6d9d6daceffd4550f3"}' -H "Content-Type: application/json" -X GET
-`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, da@gmail.com, kgljrjgo5dg, 60c71e6d9d6daceffd4550f3  είναι παραδείγματα uuid, email, password, _ id αντίστοιχα.   
-        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
-           * Επιτυχή αυθεντικοποίηση του χρήστη 
-            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
-              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
-                * Μετατροπή του δοθέντος _ id από String σε ObjectId έτσι ώστε να μπορεί να γίνει η αναζήτηση εντός των εγγραφών της βάσης αρχικά με την εκχώρηση του _ id στην μεταβήτή oid_str `oid_str = data['_id']` και στην συνέχεια με την μετατροπή `oid2 = ObjectId(oid_str)`
-                * Εύρεση προϊόντος με _ id αυτό που εισήγαγε στην αναζήτησή του ο χρήστης και μετατρέψαμε παραπάνω `found_product = products.find_one({"_id" : oid2})`. 
-                  * Αν δεν βρεθούν κανένα προϊόν με αυτό το _ id, δηλαδή `if found_product == None:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No product found with given id", status=500, mimetype="application/json")`
-                  * Για το προϊόν που θα βρεθεί `else:`, θα δημιουργηθεί ένα dict `product` με την εντολή `product ={"product name": found_product['p_name'], "product category": found_product['p_category'], "stock": found_product['stock'], "description": found_product['descr'], "price": found_product['price']}` που θα περιέχει τα στοιχεία του προϊόντος
-                  * Επιστρέφεται το λεξικό ` return Response(json.dumps(product, indent=2), status=200, mimetype='application/json')` ως απάντηση. Στο παράδειγμά μας θα επιστρεφόταν `{
-  "product name": "Strained Yogurt 2% Fat",
-  "product category": "Diary",
-  "stock": 100,
-  "description": "Strained yogurt with flower milk.2% fat",
-  "price": 1.49
-}`, δηλαδή το ζητούμενο προϊόν
-              * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
-            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
-        * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`   
    5. **_addToCart_** : Προσθήκη προϊόντος στο καλάθι     
         * Πραγματοποιείται patch request- μέθοδος από τον χρήστη η οποία ονομάζεται add_to_cart με την εντολή `def add_to_cart()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/addToCart -d '{"email":"pet@gmail.com", "password":"kgljrjgo5dg","_id":"60c5f9d9a1b20a45b2eddb5a", "quantity":2}' -H "Content-Type: application/json" -X PATCH`. Τα cbee9892-cc38-11eb-a024-9d77b2d852ab, pet@gmail.com, kgljrjgo5dg, 60c5f9d9a1b20a45b2eddb5a, 2  είναι παραδείγματα uuid, email, password, _ id, quantity αντίστοιχα.   
@@ -300,10 +282,7 @@
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only admins can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No admin found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`        
-   3. **_updateProductName_** : Ενημέρωση ονόματος προϊόντος 
-   4. **_updateProductPrice_** : Ενημέρωση τιμής προϊόντος 
-   5. **updateProductDescr_** : Ενημέρωση περιγραφής προϊόντος 
-   6. **updateProductStock_** : Ενημέρωση αποθέματος προϊόντος 
+   3. **_updateProduct_** : Ενημέρωση προϊόντος 
         * Πραγματοποιείται patch request- μέθοδος από τον χρήστη η οποία ονομάζεται update_product_name με την εντολή `def update_product_name()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
         * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/deleteProduct -d '{"email":"adminsarah@gmail.com", "password":"opp8", "_id":"60d109c10a10f48062d758f7"}' -H "Content-Type: application/json" -X DELETE`
         * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
