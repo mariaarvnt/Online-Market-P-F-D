@@ -300,3 +300,16 @@
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο admin επιστρέφεται το μήνυμα `No admin found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`       
    4. **_deleteProduct_** : Διαγραφή προϊόντος από το σύστημα
+        * Πραγματοποιείται delete request- μέθοδος από τον χρήστη η οποία ονομάζεται delete_product με την εντολή `def delete_product()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/deleteProduct -d '{"email":"adminsarah@gmail.com", "password":"opp8", "_id":"60d109c10a10f48062d758f7"}' -H "Content-Type: application/json" -X DELETE`
+        * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
+           * Επιτυχή αυθεντικοποίηση του χρήστη 
+           * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) διαχειριστή με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι admins μπορούν να διαγράψουν προϊόντα. Άρα με τον έλεγχο `if user_session["category"] == "admin":` ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι admin. Στην περίπτωση που είναι:
+                * Μετατρέπουμε το "_id" που δόθηκε από τον χρήστη σε ObjectId για να είναι συμβατό εμ την Mongodb `oid_str = data['_id']`,`oid2 = ObjectId(oid_str)`. Αν δεν υπάρχει προϊόν με αυτό το "_id", δηλαδή `if products.count_documents({"_id": oid2}) == 0 :`:
+                  * Μήνυμα αποτυχίας, `Return Response("Product not found in db", status=500, mimetype="application/json")`
+                * Αν βρεθεί το προϊόν:
+                  * Διαγραφή του με την εντολή `products.delete_one({"_id": oid2})`            
+                  * Επιστροφή μηνύματος επιτυχίας `return Response("Product was successfully deleted from MongoDB", status=500, mimetype='application/json')` 
+              * Σε περίπτωση που το email δεν ανήκει σε admin αλλά σε user επιστρέφεται το μήνυμα `Only admins can perform this operation`
+            * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο admin επιστρέφεται το μήνυμα `No admin found with given email`
