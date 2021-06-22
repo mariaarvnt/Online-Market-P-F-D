@@ -67,12 +67,12 @@
             * Επιστρέφεται μήνυμα λάθους με την εντολή `return Response('No user found with given email or password', status=400, mimetype='application/json')`, δηλαδή αποτέλεσμα: `No user found with given email or password`   
    3. **_searchProduct_** : Αναζήτηση προϊόντος 
         * Πραγματοποιείται get request- μέθοδος από τον χρήστη η οποία ονομάζεται search_product με την εντολή `def search_product()` εντός της οποίας αρχικά φορτώνονται τα δεδομένα που δίνει ο χρήστης με την εντολή `data = json.loads(request.data)` και ένα exception handling σε περίπτωση που ο χρήστης έχει δώσει ελειπή ή λάθος στοιχεία.
-        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_name":"500"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει ονόματος, `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchByName -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`,  εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει κατηγορίας, curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchById -d '{"email":"da@gmail.com", "password":"kgljrjgo5dg","_id":"60c71e6d9d6daceffd4550f3"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει μοναδικού κωδικού προϊόντος
+        * Έχουμε πρόσβαση στο συγκεκριμένο endpoint με την χρήση της εντολής `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchProduct -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_name":"500"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει ονόματος, `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchProduct -d '{"email": "da@gmail.com", "password":"kgljrjgo5dg","p_category":"Diary"}' -H "Content-Type: application/json" -X GET`,  εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει κατηγορίας, `curl -H "Authorization: cbee9892-cc38-11eb-a024-9d77b2d852ab" http://localhost:5000/searchProduct -d '{"email":"da@gmail.com", "password":"kgljrjgo5dg","_id":"60c71e6d9d6daceffd4550f3"}' -H "Content-Type: application/json" -X GET`, εάν ο χρήστης επιθυμεί να αναζητήσει προϊόντα βάσει μοναδικού κωδικού προϊόντος
         * Με την επιτυχή φόρτωση των δεδομένων του αρχείου, με την εντολή `uuid = request.headers.get('authorization')` ο χρήστης περνάει το uuid το οποίο έχει λάβει κατά την είσοδό του στο σύστημα έτσι ώστε να αυθεντικοποιηθεί. Για τον έλεγχο του uuid κλήθηκε η συνάρτηση is_session_valid() με παράμετρο το uuid - η οποία επιστρέφει true εάν το uuid βρεθεί εντός των users_sessions). Σε περίπτωση που υπάρχει uuid ανάμεσα στα users_sessions, δηλαδή `if is_session_valid(uuid)`, έχουμε:
             * Επιτυχή αυθεντικοποίηση του χρήστη 
-            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})` . Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
-              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα.Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
-                  * Εάν ο χρήστης έχει δόσει όνομα προϊόντος: 
+            * Αναζήτηση στα δεδομένα το δοθέν από τον χρήστη email και εκχώρηση αυτού στην μεταβλητή user_session με την εντολή `user_session = users.find_one({"email":data["email"]})`. Χρησιμοποιήθηκε η method find_one() έτσι ώστε να βρούμε τον (πρώτο) χρήστη με αυτό το email. Στην περίπτωση που υπάρχει αυτός ο φοιτητής, δηλαδή `if user_session`:     
+              * Απαιτείται να ελέγξουμε την κατηγορία του αφού μόνο οι users μπορούν να αναζητήσουν προϊόντα. Άρα με τον έλεγχο `if user_session["category"] == "user":`           ελέγχεται ο συγκεκριμένος χρήστης (τον οποίο ταυτοποιήσαμε στο προηγούμενο βήμα) εάν η κατηγορία του είναι user. Στην περίπτωση που είναι:
+                  * Εάν ο χρήστης έχει δόσει όνομα προϊόντος, αν δηλαδή `if "p_name" in data:`: 
                     * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
                     * Εύρεση προϊόντων που έχουν στο όνομά τους (p_name) το όνομα που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_products` με την εντολή `same_products = list(products.find({"p_name" : {"$regex" : data['p_name']}}))`. Εδώ χρησιμοποιήθηκε ο τελεστής `$regex` που βοηθά στην εύρεση όσων εγγραφών περιέχουν το pattern που δόθηκε μέσω του data['p_name']. 
                       * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found with the name " + data['p_name'], status=500, mimetype="application/json")`
@@ -96,7 +96,7 @@
         "price": 0.97
       }
     ] `, δηλαδή τα δύο προϊόντα που έχουν στο όνομά τους το '500'. 
-                  * Εάν ο χρήστης έχει δώσει κατηγορία προϊόντος:   
+                  * Εάν ο χρήστης έχει δώσει κατηγορία προϊόντος, αν δηλαδή `elif "p_category" in data:`:    
                     * Δημιουργία λίστας που θα αποθηκεύσει τα προϊόντα- αποτελέσματα της αναζήτησης με την εντολή `products_list = []`
                     * Εύρεση προϊόντων που έχουν ίδια κατηγορία (p_category) με αυτή που εισήγαγε στην αναζήτησή του ο χρήστης και εισαγωγή τους στην λίστα `same_c_products` με την εντολή `same_c_products = list(products.find({"p_category" : data['p_category']}))`
                       * Αν δεν βρεθούν προϊόντα που ταιρίαζουν στα κριτήτια αναζήτησης, δηλαδή `if len(same_c_products) == 0:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No products found in requested category, status=500, mimetype="application/json")`
@@ -128,8 +128,8 @@
         "price": 2.98
       }
     ]                                                   
-    `, δηλαδή τα τρία προϊόντα που ανήκουν στην κατηγορία 'Diary'.    
-                  * Εάν ο χρήστης έχει δώσει μοναδικό κωδικό προϊόντος:      
+    `, δηλαδή τα τρία προϊόντα που ανήκουν στην κατηγορία 'Diary' σε αύξουσα σειρά βάσει τιμής.    
+                  * Εάν ο χρήστης έχει δώσει μοναδικό κωδικό προϊόντος, αν δηλαδή `elif "_id" in data:`:       
                       * Μετατροπή του δοθέντος _ id από String σε ObjectId έτσι ώστε να μπορεί να γίνει η αναζήτηση εντός των εγγραφών της βάσης αρχικά με την εκχώρηση του _ id στην μεταβήτή oid_str `oid_str = data['_id']` και στην συνέχεια με την μετατροπή `oid2 = ObjectId(oid_str)`
                       * Εύρεση προϊόντος με _ id αυτό που εισήγαγε στην αναζήτησή του ο χρήστης και μετατρέψαμε παραπάνω `found_product = products.find_one({"_id" : oid2})`. 
                         * Αν δεν βρεθούν κανένα προϊόν με αυτό το _ id, δηλαδή `if found_product == None:`, τότε επιστρέφεται μήνυμα αποτυχίας `return Response("No product found with given id", status=500, mimetype="application/json")`
@@ -140,7 +140,8 @@
         "stock": 100,
         "description": "Strained yogurt with flower milk.2% fat",
         "price": 1.49
-      }`, δηλαδή το ζητούμενο προϊόν                  
+      }`, δηλαδή το ζητούμενο προϊόν 
+                  * Εάν ο χρήστης δεν δώσει όνομα, κατηγορία ή μοναδικό κωδικό προϊόντος επιστρέφεται μήνυμα αποτυχίας: `return Response("Insert p_name or p_category or _id to searxh products", status=500, mimetype='application/json')`    
               * Σε περίπτωση που το email δεν ανήκει σε user αλλά σε admin επιστρέφεται το μήνυμα `Only users can perform this operation`
             * Σε περίπτωση που το email που δίνεται δεν αντιστοιχεί σε κάποιο χρήστη επιστρέφεται το μήνυμα `No user found with given email`
         * Εάν το uuid είναι λανθασμένο για το συγκεκριμένο session επιστρέφεται το μήνυμα `User not Authenticated`
